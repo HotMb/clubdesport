@@ -1,25 +1,32 @@
+from src.classes.abonnement import Abonnement
+
 class Adherent:
     """
-    Représente un membre du club avec son solde et son type d'abonnement.
-    Types d'abonnement : 'ticket' ou 'forfait'.
+    Représente un membre du club qui possède un abonnement.
     """
-    def __init__(self, nom, solde, type_abonnement):
+    def __init__(self, nom, solde, type_abo="ticket"):
         self.nom = nom
         self.solde = solde
-        self.type_abonnement = type_abonnement
+        self.abonnement = Abonnement(type_abo)
+
+    def souscrire_forfait(self):
+        """Passe l'adhérent au forfait et déduit les 200€."""
+        if self.abonnement.type_abo == "forfait":
+            return # Déjà au forfait
+            
+        nouveau_abo = Abonnement("forfait")
+        cout = nouveau_abo.get_cout_initial()
         
-        # Tarifs par sport et type d'abonnement
-        self.tarifs = {
-            "ticket": {"tennis": 30, "badminton": 20, "squash": 15},
-            "forfait": {"tennis": 11, "badminton": 10, "squash": 9}
-        }
+        # On utilise debit_solde pour déduire les frais (et lever l'erreur si besoin)
+        self.debit_solde(cout)
+        self.abonnement = nouveau_abo
 
     def get_prix_seance(self, type_sport):
-        """Retourne le prix d'une séance selon le sport et l'abonnement."""
-        return self.tarifs[self.type_abonnement].get(type_sport.lower(), 0)
+        """Demande le prix à l'objet abonnement."""
+        return self.abonnement.get_prix_sport(type_sport)
 
     def debit_solde(self, montant):
-        """Déduit un montant du solde si suffisant, sinon lève une erreur."""
+        """Vérifie le solde et déduit le montant."""
         if self.solde < montant:
             raise ValueError("Solde insuffisant")
         self.solde -= montant

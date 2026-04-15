@@ -2,35 +2,39 @@ import pytest
 from src.classes.adherent import Adherent
 
 @pytest.fixture
-def adherent():
-    return Adherent("Otmane", 100, "ticket")
+def adherent_ticket():
+    return Adherent("Walid", 100, "ticket")
 
-def test_initialisation_adherent(adherent):
-    """Vérifie qu'un adhérent est bien créé avec son nom, solde et abonnement."""
-    assert adherent.nom == "Otmane"
-    assert adherent.solde == 100
-    assert adherent.type_abonnement == "ticket"
+def test_initialisation_ticket(adherent_ticket):
+    """Le solde ne bouge pas pour un ticket (coût 0€)."""
+    assert adherent_ticket.solde == 100
+    assert adherent_ticket.nom == "Walid"
 
-def test_calcul_prix_ticket(adherent):
-    """Vérifie les tarifs pour un abonnement 'ticket'."""
-    assert adherent.get_prix_seance("tennis") == 30
-    assert adherent.get_prix_seance("badminton") == 20
-    assert adherent.get_prix_seance("squash") == 15
-
-def test_calcul_prix_forfait():
-    """Vérifie les tarifs réduits pour un abonnement 'forfait'."""
-    adherent = Adherent("Charlie", 100, "forfait")
+def test_passage_au_forfait():
+    """Vérifie que le passage au forfait déduit bien 200€."""
+    adherent = Adherent("Otmane", 500, "ticket")
+    
+    adherent.souscrire_forfait()
+    
+    assert adherent.abonnement.type_abo == "forfait"
+    assert adherent.solde == 300 # 500€ - 200€
     assert adherent.get_prix_seance("tennis") == 11
-    assert adherent.get_prix_seance("badminton") == 10
-    assert adherent.get_prix_seance("squash") == 9
 
-def test_debit_solde_succes(adherent):
-    """Vérifie que le solde diminue correctement après un paiement."""
-    adherent.debit_solde(30)
-    assert adherent.solde == 70
+def test_prix_seance_via_abonnement(adherent_ticket):
+    """Vérifie que l'adhérent récupère les prix depuis son objet abonnement."""
+    assert adherent_ticket.get_prix_seance("tennis") == 30
+
+def test_debit_solde_succes(adherent_ticket):
+    adherent_ticket.debit_solde(30)
+    assert adherent_ticket.solde == 70
 
 def test_debit_solde_insuffisant():
-    """Vérifie qu'une erreur est levée si le solde est trop bas."""
-    adherent = Adherent("Alice", 20, "ticket")
+    adherent = Adherent("Alice", 10, "ticket")
     with pytest.raises(ValueError, match="Solde insuffisant"):
         adherent.debit_solde(30)
+
+def test_passage_au_forfait_solde_insuffisant():
+    """Vérifie qu'on ne peut pas passer au forfait si on n'a pas les 200€."""
+    adherent = Adherent("Walid", 50, "ticket")
+    with pytest.raises(ValueError, match="Solde insuffisant"):
+        adherent.souscrire_forfait()
