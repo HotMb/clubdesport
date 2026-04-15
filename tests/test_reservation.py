@@ -26,20 +26,9 @@ def test_reservation_solde_insuffisant(setup_data):
     with pytest.raises(ValueError, match="Solde insuffisant"):
         reservation.confirmer()
 
-def test_mise_a_jour_registre_distant(setup_data, monkeypatch):
-    """Utilise monkeypatch de pytest pour simuler l'appel réseau."""
+def test_mise_a_jour_registre_distant(setup_data):
+    """Vérifie que le registre distant est bien récupéré (le mock est automatique)."""
     adherent, salle = setup_data
-
-    # On crée une fonction factice qui simule requests.get(...).text
-    class MockResponse:
-        text = "Walid;2026-04-18 20:30\nOtmane;2026-04-18 21:30"
-
-    def mock_get(*args, **kwargs):
-        return MockResponse()
-
-    # On remplace l'appel à requests.get par notre fonction mock_get
-    import requests
-    monkeypatch.setattr(requests, "get", mock_get)
     
     reservation = Reservation(adherent, salle, "2026-04-18 20:30")
     registre = reservation.recuperer_registre_distant("tennis")
